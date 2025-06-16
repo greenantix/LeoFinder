@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { db } from './db/index';
+import { db } from './db/firestore';
 import { listingService } from './services/listingService';
 import { scraperService } from './services/scraper';
 import { aiService } from './services/ai';
