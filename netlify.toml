@@ -11,10 +11,10 @@
   status = 200
 
 [context.production.environment]
-  VITE_API_BASE_URL = "https://leofinder.onrender.com/api"
+  VITE_API_BASE_URL = "https://leofinder.onrender.com"
 
 [context.branch-deploy.environment]
-  VITE_API_BASE_URL = "https://leofinder.onrender.com/api"
+  VITE_API_BASE_URL = "https://leofinder.onrender.com"
 
 [context.deploy-preview.environment]
-  VITE_API_BASE_URL = "https://leofinder.onrender.com/api"
+  VITE_API_BASE_URL = "https://leofinder.onrender.com"
