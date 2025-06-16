@@ -2,6 +2,7 @@
 import React from 'react';
 import { Home, Search, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link, useLocation } from 'react-router-dom';
 
 interface HeaderProps {
   totalListings: number;
@@ -9,21 +10,44 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ totalListings, matchedListings }) => {
+  const location = useLocation();
+  
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-md mx-auto px-4 py-3">
         <div className="flex items-center justify-between mb-3">
-          <div>
+          <Link to="/" className="flex-1">
             <h1 className="text-xl font-bold text-gray-900">ZeroDownHero</h1>
             <p className="text-xs text-gray-600">Finding your home, zero down required</p>
-          </div>
+          </Link>
           
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm">
-              <Search className="w-4 h-4" />
+            <Button 
+              variant={location.pathname === '/' ? 'default' : 'ghost'} 
+              size="sm" 
+              asChild
+            >
+              <Link to="/">
+                <Home className="w-4 h-4" />
+              </Link>
             </Button>
-            <Button variant="ghost" size="sm">
-              <Settings className="w-4 h-4" />
+            <Button 
+              variant={location.pathname === '/search' ? 'default' : 'ghost'} 
+              size="sm" 
+              asChild
+            >
+              <Link to="/search">
+                <Search className="w-4 h-4" />
+              </Link>
+            </Button>
+            <Button 
+              variant={location.pathname === '/settings' ? 'default' : 'ghost'} 
+              size="sm" 
+              asChild
+            >
+              <Link to="/settings">
+                <Settings className="w-4 h-4" />
+              </Link>
             </Button>
           </div>
         </div>
