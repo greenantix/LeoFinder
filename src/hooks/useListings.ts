@@ -56,7 +56,7 @@ export const useGetListings = (filters?: {
       if (filters?.offset) params.append('offset', filters.offset.toString());
 
       const queryString = params.toString();
-      const url = queryString ? `/listings?${queryString}` : '/listings';
+      const url = queryString ? `/api/listings?${queryString}` : '/api/listings';
       
       const response: ListingsResponse = await apiClient.get(url);
       return response.data || response; // Handle both wrapped and direct responses
@@ -71,7 +71,7 @@ export const useGetListing = (listingId: string) => {
   return useQuery<Listing, Error>({
     queryKey: ['listing', listingId],
     queryFn: async () => {
-      const response = await apiClient.get(`/listings/${listingId}`);
+      const response = await apiClient.get(`/api/listings/${listingId}`);
       return response.data || response;
     },
     enabled: !!listingId,
@@ -84,7 +84,7 @@ export const useGenerateEmail = () => {
   
   return useMutation<EmailResponse['data'], Error, { listingId: string; userPersona?: string }>({
     mutationFn: async ({ listingId, userPersona }) => {
-      const response: EmailResponse = await apiClient.post('/generate-email', { 
+      const response: EmailResponse = await apiClient.post('/api/generate-email', { 
         listingId, 
         userPersona 
       });
@@ -120,7 +120,7 @@ export const useLogOutreach = () => {
   
   return useMutation<void, Error, OutreachRequest>({
     mutationFn: async (outreachData) => {
-      await apiClient.post('/log-outreach', outreachData);
+      await apiClient.post('/api/log-outreach', outreachData);
     },
     onSuccess: () => {
       // Invalidate listings to update status
@@ -135,7 +135,7 @@ export const useScrapeListings = () => {
   
   return useMutation<void, Error, ScrapeRequest>({
     mutationFn: async (scrapeData) => {
-      await apiClient.post('/scrape', scrapeData);
+      await apiClient.post('/api/scrape', scrapeData);
     },
     onSuccess: () => {
       // Invalidate listings after starting scrape job
@@ -149,7 +149,7 @@ export const useScrapeListings = () => {
 export const useTestNotification = () => {
   return useMutation<void, Error, { listingId?: string }>({
     mutationFn: async (data) => {
-      await apiClient.post('/notifications/test', data);
+      await apiClient.post('/api/notifications/test', data);
     },
   });
 };
@@ -158,7 +158,7 @@ export const useTestNotification = () => {
 export const useSubscribeNotifications = () => {
   return useMutation<void, Error, { token: string; topic?: string }>({
     mutationFn: async ({ token, topic = 'high_score_listings' }) => {
-      await apiClient.post('/notifications/subscribe', { token, topic });
+      await apiClient.post('/api/notifications/subscribe', { token, topic });
     },
   });
 };
