@@ -71,3 +71,16 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## 🚀 Deploy on Render
+
+Deploying to Render requires special attention to environment variables.
+
+### `FIREBASE_PRIVATE_KEY`
+When adding your Firebase private key to Render's environment variables, paste the entire key as a single line, replacing newlines with `\n`. Render's environment variable editor does not correctly handle multi-line strings.
+
+### `DATABASE_URL`
+Ensure that any special characters in your Postgres password are URL-encoded. For example, `@` should be `%40`, and `:` should be `%3A`.
+
+### Environment Variable Conflicts
+You can commit a `.env.production` file and load it via `dotenv`. If you do this, you must unset those same variables in Render's dashboard to avoid conflicts. Render's environment variables will override any variables loaded from a `.env` file.

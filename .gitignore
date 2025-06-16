@@ -114,3 +114,5 @@ temp/
 # Misc
 .cache
 .vercel
+server/.env.minimal
+server/.env.production

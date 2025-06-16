@@ -16,19 +16,14 @@ class Database {
   constructor() {
     // Use DATABASE_URL if available (Supabase), otherwise fallback to individual config
     if (process.env.DATABASE_URL) {
+      const dbUrl = new URL(process.env.DATABASE_URL);
+      console.log(`Attempting to connect to database: ${dbUrl.hostname} as user ${dbUrl.username}`);
       this.pool = new Pool({
         connectionString: process.env.DATABASE_URL,
         ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
       });
     } else {
-      const config: DatabaseConfig = {
-        host: process.env.DB_HOST || 'localhost',
-        port: parseInt(process.env.DB_PORT || '5432'),
-        database: process.env.DB_NAME || 'leofinder',
-        user: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD || '',
-      };
-      this.pool = new Pool(config);
+       throw new Error("DATABASE_URL is undefined – check Render dashboard or .env");
     }
 
     this.pool.on('error', (err: Error) => {
@@ -36,7 +31,7 @@ class Database {
     });
   }
 
-  async query(text: string, params?: any[]): Promise<QueryResult> {
+  async query(text: string, params?: (string | number | boolean)[]): Promise<QueryResult> {
     const client = await this.pool.connect();
     try {
       const result = await client.query(text, params);
