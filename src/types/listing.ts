@@ -16,6 +16,8 @@ export interface Listing {
     usda_eligible: boolean;
   };
   emailDraft?: string;
+  emailTemplate?: string;
+  contactEmail?: string;
   bedrooms: number;
   bathrooms: number;
   sqft: number;
@@ -30,12 +32,19 @@ export interface Listing {
   };
   ai_summary?: string;
   match_score: number; // 0-100 based on how well it matches criteria
+  expiresAt?: string; // ISO date string
+  claudeInsights?: {
+    noMoneyDown: 'yes' | 'maybe' | 'no';
+    flexibleTerms: 'yes' | 'maybe' | 'no';
+    dogFriendly: 'yes' | 'maybe' | 'no';
+  };
 }
 
 export interface OutreachLog {
   id: string;
   listingId: string;
   emailSent: boolean;
+  wasSent: boolean;
   timestamp: string;
   emailContent: string;
   response?: string;

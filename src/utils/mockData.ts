@@ -23,6 +23,13 @@ export const generateMockListings = (): Listing[] => {
         name: 'Sarah Johnson',
         phone: '(804) 555-0123',
         email: 'sarah.johnson@email.com'
+      },
+      contactEmail: 'sarah.johnson@email.com',
+      expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
+      claudeInsights: {
+        noMoneyDown: 'yes' as const,
+        flexibleTerms: 'yes' as const,
+        dogFriendly: 'yes' as const
       }
     },
     {
@@ -42,6 +49,12 @@ export const generateMockListings = (): Listing[] => {
       contact_info: {
         name: 'Mike Rodriguez',
         phone: '(757) 555-0456'
+      },
+      expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+      claudeInsights: {
+        noMoneyDown: 'yes' as const,
+        flexibleTerms: 'yes' as const,
+        dogFriendly: 'maybe' as const
       }
     },
     {
@@ -63,6 +76,13 @@ export const generateMockListings = (): Listing[] => {
         name: 'Hampton Roads Realty',
         phone: '(757) 555-0789',
         email: 'info@hrrealty.com'
+      },
+      contactEmail: 'info@hrrealty.com',
+      expiresAt: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(), // 6 days from now
+      claudeInsights: {
+        noMoneyDown: 'maybe' as const,
+        flexibleTerms: 'yes' as const,
+        dogFriendly: 'yes' as const
       }
     },
     {
@@ -84,6 +104,13 @@ export const generateMockListings = (): Listing[] => {
         name: 'Tom Wilson',
         phone: '(757) 555-0234',
         email: 'tom.wilson@email.com'
+      },
+      contactEmail: 'tom.wilson@email.com',
+      expiresAt: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days from now
+      claudeInsights: {
+        noMoneyDown: 'yes' as const,
+        flexibleTerms: 'maybe' as const,
+        dogFriendly: 'yes' as const
       }
     },
     {
@@ -103,6 +130,12 @@ export const generateMockListings = (): Listing[] => {
       contact_info: {
         name: 'Lisa Chen',
         phone: '(757) 555-0567'
+      },
+      expiresAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
+      claudeInsights: {
+        noMoneyDown: 'maybe' as const,
+        flexibleTerms: 'maybe' as const,
+        dogFriendly: 'yes' as const
       }
     }
   ];
@@ -114,7 +147,8 @@ export const generateMockListings = (): Listing[] => {
     return {
       ...listing,
       ...analysis,
-      emailDraft
+      emailDraft,
+      emailTemplate: emailDraft // Use the generated draft as the template
     };
   }).sort((a, b) => b.match_score - a.match_score); // Sort by match score
 };

@@ -4,7 +4,9 @@ import { Header } from '../components/Header';
 import { HeroSection } from '../components/HeroSection';
 import { ListingCard } from '../components/ListingCard';
 import { EmailDraftModal } from '../components/EmailDraftModal';
+import { MissionFeed } from '../components/MissionFeed';
 import { generateMockListings } from '../utils/mockData';
+import { getTodayEmailCount } from '../utils/outreachLogger';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { Listing } from '../types/listing';
 import { Button } from '@/components/ui/button';
@@ -15,6 +17,7 @@ const Index = () => {
   const [listings, setListings] = useState<Listing[]>([]);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [emailsSentToday, setEmailsSentToday] = useState(0);
   const { toast } = useToast();
   
   const { 
@@ -29,10 +32,14 @@ const Index = () => {
     const mockListings = generateMockListings();
     setListings(mockListings);
     
+    // Load today's email count
+    setEmailsSentToday(getTodayEmailCount());
+    
     // Simulate real-time updates (in production, this would be WebSocket or polling)
     const interval = setInterval(() => {
       console.log('Checking for new listings...');
-      // In production, this would fetch new listings from your backend
+      // Update email count in case user sent emails
+      setEmailsSentToday(getTodayEmailCount());
     }, 30000); // Check every 30 seconds
 
     return () => clearInterval(interval);
@@ -71,19 +78,41 @@ const Index = () => {
     }
   };
 
-  const matchedListings = listings.filter(listing => listing.match_score >= 40);
-  const highMatchListings = listings.filter(listing => listing.match_score >= 60);
+  // Filter out expired listings and calculate stats
+  const activeListings = listings.filter(listing => {
+    if (!listing.expiresAt) return true;
+    return new Date(listing.expiresAt) >= new Date();
+  });
+
+  const matchedListings = activeListings.filter(listing => listing.match_score >= 40);
+  const highMatchListings = activeListings.filter(listing => listing.match_score >= 60);
+  const topMatchScore = Math.max(...matchedListings.map(l => l.match_score), 0);
+  
+  // New leads count (simulate - in production this would track actual new listings)
+  const newLeadsToday = matchedListings.filter(listing => {
+    const listingDate = new Date(listing.listing_date);
+    const today = new Date();
+    return listingDate.toDateString() === today.toDateString();
+  }).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header 
-        totalListings={listings.length} 
+        totalListings={activeListings.length} 
         matchedListings={matchedListings.length}
       />
       
       <HeroSection />
       
       <main className="max-w-md mx-auto px-4 py-6">
+        {/* Mission Feed */}
+        <MissionFeed 
+          newLeadsCount={newLeadsToday}
+          emailsSentToday={emailsSentToday}
+          highMatchCount={highMatchListings.length}
+          topMatchScore={topMatchScore > 0 ? topMatchScore : undefined}
+        />
+
         {/* Notification Setup */}
         {isSupported && permission !== 'granted' && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">

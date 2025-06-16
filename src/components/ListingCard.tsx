@@ -1,11 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Listing } from '../types/listing';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Home, Calendar, Mail, Phone, ExternalLink } from 'lucide-react';
+import { MapPin, Home, Calendar, Mail, Phone, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ClaudeInsights } from './ClaudeInsights';
+import { logOutreach } from '../utils/outreachLogger';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface ListingCardProps {
   listing: Listing;
@@ -14,6 +17,13 @@ interface ListingCardProps {
 
 export const ListingCard: React.FC<ListingCardProps> = ({ listing, onEmailDraft }) => {
   const { toast } = useToast();
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Check if listing is expired (older than 7 days)
+  const isExpired = () => {
+    if (!listing.expiresAt) return false;
+    return new Date(listing.expiresAt) < new Date();
+  };
 
   const getFlagBadges = () => {
     const badges = [];
@@ -42,21 +52,37 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onEmailDraft 
     });
   };
 
-  const openMailApp = () => {
-    const subject = encodeURIComponent(`Interest in Property: ${listing.address}`);
-    const body = encodeURIComponent(listing.emailDraft || '');
-    const email = listing.contact_info?.email || '';
+  const sendMessage = async () => {
+    const emailContent = listing.emailTemplate || listing.emailDraft || '';
+    const recipientEmail = listing.contactEmail || listing.contact_info?.email;
     
-    if (email) {
-      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-    } else {
+    if (!recipientEmail) {
       toast({
         title: "No Email Available",
-        description: "Contact information doesn't include email. Try calling instead.",
+        description: "No email listed, try contacting via website.",
         variant: "destructive"
       });
+      return;
     }
+
+    const subject = encodeURIComponent(`Interested in ${listing.address}`);
+    const body = encodeURIComponent(emailContent);
+    
+    // Log the outreach
+    await logOutreach(listing.id, emailContent);
+    
+    // Open mail app
+    window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
+    
+    toast({
+      title: "Email Opened",
+      description: "Mail app opened with pre-filled message",
+    });
   };
+
+  if (isExpired()) {
+    return null; // Hide expired listings
+  }
 
   return (
     <Card className="mb-4 shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -115,13 +141,14 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onEmailDraft 
 
         <p className="text-gray-700 text-sm mb-4 line-clamp-3">{listing.description}</p>
 
+        {/* Main action buttons */}
         <div className="flex flex-wrap gap-2 mb-4">
           <Button 
-            onClick={openMailApp}
-            className="flex-1 bg-blue-600 hover:bg-blue-700"
+            onClick={sendMessage}
+            className="flex-1 bg-green-600 hover:bg-green-700"
           >
             <Mail className="w-4 h-4 mr-2" />
-            Send Email
+            Send Message
           </Button>
           
           {listing.contact_info?.phone && (
@@ -136,26 +163,40 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onEmailDraft 
           )}
         </div>
 
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => onEmailDraft(listing)}
-            className="flex-1"
-          >
-            View Email Draft
-          </Button>
+        {/* Expandable section */}
+        <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className="w-full justify-between mb-2">
+              <span>More Details & Analysis</span>
+              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </Button>
+          </CollapsibleTrigger>
           
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => window.open(listing.url, '_blank')}
-            className="flex-1"
-          >
-            <ExternalLink className="w-4 h-4 mr-1" />
-            View Listing
-          </Button>
-        </div>
+          <CollapsibleContent>
+            <ClaudeInsights insights={listing.claudeInsights} />
+            
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => onEmailDraft(listing)}
+                className="flex-1"
+              >
+                View Email Draft
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open(listing.url, '_blank')}
+                className="flex-1"
+              >
+                <ExternalLink className="w-4 h-4 mr-1" />
+                View Listing
+              </Button>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </CardContent>
     </Card>
   );
