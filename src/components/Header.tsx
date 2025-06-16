@@ -3,6 +3,7 @@ import React from 'react';
 import { Home, Search, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
+import { VoiceControl } from './VoiceControl';
 
 interface HeaderProps {
   totalListings: number;
@@ -49,6 +50,8 @@ export const Header: React.FC<HeaderProps> = ({ totalListings, matchedListings }
                 <Settings className="w-4 h-4" />
               </Link>
             </Button>
+            
+            <VoiceControl />
           </div>
         </div>
         
