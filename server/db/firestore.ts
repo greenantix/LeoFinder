@@ -214,4 +214,49 @@ class FirestoreDatabase {
   }
 }
 
-export const db = new FirestoreDatabase();
+let dbInstance: FirestoreDatabase | null = null;
+
+export const db = {
+  async init() {
+    if (!dbInstance) {
+      dbInstance = new FirestoreDatabase();
+    }
+    return dbInstance;
+  },
+  
+  async testConnection() {
+    const instance = await this.init();
+    return instance.testConnection();
+  },
+  
+  async initializeSchema() {
+    const instance = await this.init();
+    return instance.initializeSchema();
+  },
+  
+  async getAllListings(filters: any) {
+    const instance = await this.init();
+    return instance.getAllListings(filters);
+  },
+  
+  async getListingById(id: string) {
+    const instance = await this.init();
+    return instance.getListingById(id);
+  },
+  
+  async saveListing(listing: any) {
+    const instance = await this.init();
+    return instance.saveListing(listing);
+  },
+  
+  async logOutreach(log: any) {
+    const instance = await this.init();
+    return instance.logOutreach(log);
+  },
+  
+  async close() {
+    if (dbInstance) {
+      await dbInstance.close();
+    }
+  }
+};
