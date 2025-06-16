@@ -25,7 +25,7 @@ export class ListingService {
         WHERE 1=1
       `;
       
-      const params: any[] = [];
+      const params: (string | number)[] = [];
       let paramIndex = 1;
 
       if (filters?.zipCode) {
@@ -129,19 +129,41 @@ export class ListingService {
       `;
 
       const params = [
-        listing.id, listing.address, listing.price, listing.source, listing.url,
-        listing.description, listing.images, listing.bedrooms, listing.bathrooms,
-        listing.sqft, listing.lot_size, listing.year_built, listing.property_type,
-        listing.listing_date, listing.contact_info?.name, listing.contact_info?.phone,
-        listing.contact_info?.email, listing.flags.va_eligible, listing.flags.contract_for_deed,
-        listing.flags.owner_finance, listing.flags.lease_to_own, listing.flags.no_credit_check,
-        listing.flags.usda_eligible, listing.emailDraft, listing.emailTemplate,
-        listing.ai_summary, listing.match_score, listing.claudeInsights?.noMoneyDown,
-        listing.claudeInsights?.flexibleTerms, listing.claudeInsights?.dogFriendly,
-        listing.status || 'new', listing.expiresAt
-      ];
+        listing.id,
+        listing.address,
+        listing.price,
+        listing.source,
+        listing.url,
+        listing.description,
+        JSON.stringify(listing.images),
+        listing.bedrooms,
+        listing.bathrooms,
+        listing.sqft,
+        listing.lot_size,
+        listing.year_built,
+        listing.property_type,
+        listing.listing_date,
+        listing.contact_info?.name,
+        listing.contact_info?.phone,
+        listing.contact_info?.email,
+        listing.flags.va_eligible,
+        listing.flags.contract_for_deed,
+        listing.flags.owner_finance,
+        listing.flags.lease_to_own,
+        listing.flags.no_credit_check,
+        listing.flags.usda_eligible,
+        listing.emailDraft,
+        listing.emailTemplate,
+        listing.ai_summary,
+        listing.match_score,
+        listing.claudeInsights?.noMoneyDown,
+        listing.claudeInsights?.flexibleTerms,
+        listing.claudeInsights?.dogFriendly,
+        listing.status || "new",
+        listing.expiresAt,
+      ].map(p => p === undefined ? null : p);
 
-      const result = await db.query(query, params);
+      const result = await db.query(query, params as (string | number | boolean)[]);
       return this.mapRowToListing(result.rows[0]);
     } catch (error) {
       console.error('Error saving listing:', error);
@@ -178,7 +200,7 @@ export class ListingService {
     }
   }
 
-  private mapRowToListing(row: any): Listing {
+  private mapRowToListing(row: Record<string, any>): Listing {
     return {
       id: row.id,
       address: row.address,
