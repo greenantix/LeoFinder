@@ -24,11 +24,11 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get('/health', async (req, res) => {
   try {
-    const dbConnected = await db.testConnection();
+    await db.testConnection();
     res.json({ 
       status: 'ok', 
       timestamp: new Date().toISOString(),
-      database: dbConnected ? 'connected' : 'disconnected'
+      database: 'connected'
     });
   } catch (error) {
     res.status(500).json({ 

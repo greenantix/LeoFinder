@@ -77,10 +77,31 @@ class FirestoreDatabase {
         const data = doc.data();
         listings.push({
           id: doc.id,
-          ...data,
+          address: data.address || '',
+          price: data.price || 0,
+          source: data.source || '',
+          url: data.url || '',
+          description: data.description || '',
+          images: data.images || [],
+          bedrooms: data.bedrooms,
+          bathrooms: data.bathrooms,
+          sqft: data.sqft,
+          lot_size: data.lot_size,
+          year_built: data.year_built,
+          property_type: data.property_type || '',
+          listing_date: data.listing_date,
+          contact_info: data.contact_info,
+          flags: data.flags || {},
+          emailDraft: data.emailDraft,
+          emailTemplate: data.emailTemplate,
+          ai_summary: data.ai_summary,
+          match_score: data.match_score || 0,
+          claudeInsights: data.claudeInsights,
+          status: data.status || 'new',
+          expiresAt: data.expiresAt,
           created_at: data.created_at?.toDate?.() || new Date(),
           updated_at: data.updated_at?.toDate?.() || new Date(),
-        } as Listing);
+        });
       });
 
       // Apply zipCode filter in memory (Firestore doesn't support LIKE queries)
@@ -108,10 +129,31 @@ class FirestoreDatabase {
       const data = doc.data()!;
       return {
         id: doc.id,
-        ...data,
+        address: data.address || '',
+        price: data.price || 0,
+        source: data.source || '',
+        url: data.url || '',
+        description: data.description || '',
+        images: data.images || [],
+        bedrooms: data.bedrooms,
+        bathrooms: data.bathrooms,
+        sqft: data.sqft,
+        lot_size: data.lot_size,
+        year_built: data.year_built,
+        property_type: data.property_type || '',
+        listing_date: data.listing_date,
+        contact_info: data.contact_info,
+        flags: data.flags || {},
+        emailDraft: data.emailDraft,
+        emailTemplate: data.emailTemplate,
+        ai_summary: data.ai_summary,
+        match_score: data.match_score || 0,
+        claudeInsights: data.claudeInsights,
+        status: data.status || 'new',
+        expiresAt: data.expiresAt,
         created_at: data.created_at?.toDate?.() || new Date(),
         updated_at: data.updated_at?.toDate?.() || new Date(),
-      } as Listing;
+      };
     } catch (error) {
       console.error('Error fetching listing:', error);
       throw error;
@@ -152,7 +194,12 @@ class FirestoreDatabase {
       
       return {
         id: docRef.id,
-        ...log,
+        listing_id: log.listing_id,
+        recipient_email: log.recipient_email,
+        subject: log.subject,
+        body: log.body,
+        status: log.status,
+        response: log.response || '',
         timestamp: new Date(),
       };
     } catch (error) {
