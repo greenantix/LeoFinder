@@ -24,13 +24,18 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get('/health', async (req, res) => {
   try {
-    await db.testConnection();
+    // Test database connection only if Firebase is configured
+    if (process.env.FIREBASE_PROJECT_ID) {
+      await db.testConnection();
+    }
     res.json({ 
       status: 'ok', 
       timestamp: new Date().toISOString(),
-      database: 'connected'
+      database: process.env.FIREBASE_PROJECT_ID ? 'connected' : 'not_configured',
+      environment: process.env.NODE_ENV || 'development'
     });
   } catch (error) {
+    console.error('Health check error:', error);
     res.status(500).json({ 
       status: 'error', 
       timestamp: new Date().toISOString(),
@@ -52,7 +57,43 @@ app.get('/api/listings', async (req, res) => {
       offset: req.query.offset ? parseInt(req.query.offset as string) : 0
     };
 
-    const listings = await listingService.getAllListings(filters);
+    let listings;
+    
+    // If Firebase is configured, get real data; otherwise return sample data
+    if (process.env.FIREBASE_PROJECT_ID) {
+      listings = await listingService.getAllListings(filters);
+    } else {
+      // Return sample data for demo
+      listings = [
+        {
+          id: 'sample-1',
+          address: '123 Veterans Way, Phoenix, AZ 85001',
+          price: 285000,
+          bedrooms: 3,
+          bathrooms: 2,
+          sqft: 1850,
+          lotSize: 0.25,
+          yearBuilt: 2018,
+          propertyType: 'Single Family',
+          listingType: 'Foreclosure',
+          mlsNumber: 'DEMO001',
+          description: 'VA-eligible home with owner financing available. Recently renovated with modern appliances.',
+          images: ['/placeholder.svg'],
+          creativeFinancing: {
+            ownerFinancing: true,
+            downPaymentPercent: 3,
+            terms: '3% down, seller financing at 6.5% for 30 years'
+          },
+          score: 85,
+          source: 'foreclosure.com',
+          zipCode: '85001',
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+    }
+    
     res.json({ 
       success: true, 
       data: listings,
