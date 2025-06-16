@@ -1,9 +1,10 @@
 
 {
-  "name": "ZeroDownHero - VA Home Finder",
-  "short_name": "ZeroDownHero",
-  "description": "Find veteran-friendly homes with zero down payment options",
+  "name": "LeoFinder - AI Real Estate Hunter",
+  "short_name": "LeoFinder",
+  "description": "AI-powered real estate hunting for veterans. Find creative financing, zero-down options, and VA-eligible properties instantly.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
@@ -15,13 +16,49 @@
       "type": "image/x-icon"
     },
     {
-      "src": "/placeholder.svg",
-      "type": "image/svg+xml",
+      "src": "/icon-192x192.png",
+      "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png", 
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192x192-maskable.png",
+      "type": "image/png", 
+      "sizes": "192x192",
+      "purpose": "maskable"
     }
   ],
-  "categories": ["lifestyle", "productivity"],
+  "categories": ["lifestyle", "productivity", "finance", "utilities"],
   "lang": "en-US",
-  "dir": "ltr"
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Search Properties",
+      "short_name": "Search",
+      "description": "Search for new properties",
+      "url": "/search",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Settings",
+      "short_name": "Settings", 
+      "description": "Configure preferences",
+      "url": "/settings",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "url": "shared_url"
+    }
+  }
 }

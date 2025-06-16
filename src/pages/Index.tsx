@@ -6,6 +6,7 @@ import { OpportunityCard } from '../components/OpportunityCard';
 import { EmailDraftModal } from '../components/EmailDraftModal';
 import { LeoMissionBriefing } from '../components/LeoMissionBriefing';
 import { DevTools } from '../components/DevTools';
+import { PropertyMap } from '../components/PropertyMap';
 import { useGetListings, useLogOutreach } from '../hooks/useListings';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { Listing } from '../types/listing';
@@ -246,6 +247,18 @@ const Index = () => {
                 />
               ))}
             </div>
+          </section>
+        )}
+
+        {/* Map View */}
+        {qualifiedOpportunities.length > 0 && (
+          <section className="mb-8">
+            <PropertyMap
+              listings={qualifiedOpportunities}
+              selectedListing={selectedListing}
+              onListingSelect={setSelectedListing}
+              height="400px"
+            />
           </section>
         )}
 
