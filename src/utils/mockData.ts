@@ -116,5 +116,5 @@ export const generateMockListings = (): Listing[] => {
       ...analysis,
       emailDraft
     };
-  }).sort((a, b) => b.matchScore - a.matchScore); // Sort by match score
+  }).sort((a, b) => b.match_score - a.match_score); // Sort by match score
 };

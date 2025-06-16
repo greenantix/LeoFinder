@@ -44,11 +44,7 @@ export const usePushNotifications = () => {
       {
         body: `Check out this property: ${address}`,
         tag: 'new-listing',
-        requireInteraction: true,
-        actions: [
-          { action: 'view', title: 'View Listing' },
-          { action: 'email', title: 'Send Email' }
-        ]
+        requireInteraction: true
       }
     );
   };

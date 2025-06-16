@@ -14,7 +14,7 @@ export const generateEmailDraft = (listing: Listing): string => {
   return templates[Math.floor(Math.random() * templates.length)];
 };
 
-export const analyzeListing = (description: string, price: number): { flags: Listing['flags'], matchScore: number, aiSummary: string } => {
+export const analyzeListing = (description: string, price: number): { flags: Listing['flags'], match_score: number, aiSummary: string } => {
   const text = description.toLowerCase();
   
   const flags = {
@@ -27,14 +27,14 @@ export const analyzeListing = (description: string, price: number): { flags: Lis
   };
   
   // Calculate match score based on flags and price
-  let matchScore = 0;
+  let match_score = 0;
   Object.values(flags).forEach(flag => {
-    if (flag) matchScore += 20;
+    if (flag) match_score += 20;
   });
   
   // Bonus for reasonable price
-  if (price < 200000) matchScore += 10;
-  if (price < 150000) matchScore += 10;
+  if (price < 200000) match_score += 10;
+  if (price < 150000) match_score += 10;
   
   const flaggedTerms = Object.entries(flags)
     .filter(([_, value]) => value)
@@ -45,5 +45,5 @@ export const analyzeListing = (description: string, price: number): { flags: Lis
     ? `🎯 This listing matches your criteria! Found: ${flaggedTerms}. Price is ${price < 150000 ? 'very' : ''} affordable for zero-down options.`
     : `💡 Standard listing - may still be worth contacting for flexible terms. Consider asking about seller financing options.`;
   
-  return { flags, matchScore, aiSummary };
+  return { flags, match_score, aiSummary };
 };
