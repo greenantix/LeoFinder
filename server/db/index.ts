@@ -16,12 +16,17 @@ class Database {
   constructor() {
     // Use DATABASE_URL if available (Supabase), otherwise fallback to individual config
     if (process.env.DATABASE_URL) {
-      const dbUrl = new URL(process.env.DATABASE_URL);
-      console.log(`Attempting to connect to database: ${dbUrl.hostname} as user ${dbUrl.username}`);
-      this.pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-      });
+      try {
+        const dbUrl = new URL(process.env.DATABASE_URL);
+        console.log(`Attempting to connect to database: ${dbUrl.hostname} as user ${dbUrl.username}`);
+        this.pool = new Pool({
+          connectionString: process.env.DATABASE_URL,
+          ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+        });
+      } catch (error) {
+        console.error("Invalid DATABASE_URL:", process.env.DATABASE_URL);
+        throw new Error("DATABASE_URL is not a valid URL.");
+      }
     } else {
        throw new Error("DATABASE_URL is undefined – check Render dashboard or .env");
     }
