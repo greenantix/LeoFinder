@@ -1,0 +1,27 @@
+
+{
+  "name": "ZeroDownHero - VA Home Finder",
+  "short_name": "ZeroDownHero",
+  "description": "Find veteran-friendly homes with zero down payment options",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/placeholder.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "productivity"],
+  "lang": "en-US",
+  "dir": "ltr"
+}
