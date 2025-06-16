@@ -1,11 +1,13 @@
 services:
   - type: web
     name: leofinder-backend
-    env: node
+    runtime: node
     plan: free
     buildCommand: cd server && npm ci && npm run build
     startCommand: cd server && npm start
     envVars:
+      - key: NODE_TLS_REJECT_UNAUTHORIZED
+        value: 0
       - key: NODE_ENV
         value: production
       - key: PORT
