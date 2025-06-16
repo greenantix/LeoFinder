@@ -1,0 +1,124 @@
+{
+  "owner_finance": {
+    "weight": 25,
+    "terms": [
+      "owner finance",
+      "seller finance",
+      "owner will carry",
+      "seller will carry",
+      "owner financing",
+      "seller financing",
+      "owner carry",
+      "seller carry",
+      "contract for deed",
+      "land contract"
+    ]
+  },
+  "lease_to_own": {
+    "weight": 20,
+    "terms": [
+      "lease to own",
+      "rent to own",
+      "lease option",
+      "rent to buy",
+      "lease purchase",
+      "option to purchase",
+      "lease with option"
+    ]
+  },
+  "motivated_seller": {
+    "weight": 15,
+    "terms": [
+      "motivated seller",
+      "must sell",
+      "price reduced",
+      "bring offers",
+      "make offer",
+      "needs to sell",
+      "quick sale",
+      "fast sale",
+      "motivated",
+      "priced to sell",
+      "reduced price"
+    ]
+  },
+  "no_credit_check": {
+    "weight": 20,
+    "terms": [
+      "no credit check",
+      "bad credit ok",
+      "poor credit ok",
+      "credit not important",
+      "no credit required",
+      "all credit welcome",
+      "credit problems ok"
+    ]
+  },
+  "flexible_terms": {
+    "weight": 18,
+    "terms": [
+      "flexible terms",
+      "negotiable terms",
+      "creative financing",
+      "flexible financing",
+      "work with you",
+      "willing to negotiate",
+      "open to offers",
+      "flexible payment"
+    ]
+  },
+  "va_eligible": {
+    "weight": 10,
+    "terms": [
+      "va eligible",
+      "va approved",
+      "va loan",
+      "veterans eligible",
+      "va financing",
+      "usda eligible",
+      "usda approved",
+      "rural development"
+    ]
+  },
+  "foreclosure_distressed": {
+    "weight": 12,
+    "terms": [
+      "foreclosure",
+      "pre-foreclosure",
+      "bank owned",
+      "reo",
+      "distressed",
+      "short sale",
+      "needs work",
+      "handyman special",
+      "fixer upper",
+      "as is"
+    ]
+  },
+  "dog_friendly": {
+    "weight": 8,
+    "terms": [
+      "dog friendly",
+      "pets ok",
+      "pets allowed",
+      "pet friendly",
+      "dogs welcome",
+      "large dogs ok",
+      "fenced yard",
+      "pet deposit"
+    ]
+  },
+  "no_money_down": {
+    "weight": 22,
+    "terms": [
+      "no money down",
+      "zero down",
+      "no down payment",
+      "100% financing",
+      "nothing down",
+      "no cash required",
+      "move in ready",
+      "no closing costs"
+    ]
+  }
+}

@@ -1,24 +1,31 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Header } from '../components/Header';
 import { HeroSection } from '../components/HeroSection';
 import { OpportunityCard } from '../components/OpportunityCard';
 import { EmailDraftModal } from '../components/EmailDraftModal';
 import { LeoMissionBriefing } from '../components/LeoMissionBriefing';
-import { generateMockListings } from '../utils/mockData';
-import { getTodayEmailCount, logOutreach } from '../utils/outreachLogger';
+import { DevTools } from '../components/DevTools';
+import { useGetListings, useLogOutreach } from '../hooks/useListings';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { Listing } from '../types/listing';
 import { Button } from '@/components/ui/button';
-import { Bell, BellOff, Home } from 'lucide-react';
+import { Bell, BellOff, Home, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
-  const [listings, setListings] = useState<Listing[]>([]);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-  const [emailsSentToday, setEmailsSentToday] = useState(0);
   const { toast } = useToast();
+  
+  // Fetch listings from API
+  const { data: listings = [], isLoading, isError, refetch } = useGetListings({
+    limit: 50,
+    minScore: 40 // Only show qualified opportunities
+  });
+  
+  // API mutations
+  const logOutreachMutation = useLogOutreach();
   
   const { 
     permission, 
@@ -26,19 +33,6 @@ const Index = () => {
     requestPermission, 
     sendNewListingNotification 
   } = usePushNotifications();
-
-  useEffect(() => {
-    const mockListings = generateMockListings();
-    setListings(mockListings);
-    setEmailsSentToday(getTodayEmailCount());
-    
-    const interval = setInterval(() => {
-      console.log('LEO is checking for new listings...');
-      setEmailsSentToday(getTodayEmailCount());
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const handleEmailDraft = (listing: Listing) => {
     setSelectedListing(listing);
@@ -63,7 +57,14 @@ const Index = () => {
         const subject = encodeURIComponent(`Interested in ${listing.address}`);
         const body = encodeURIComponent(emailContent);
         
-        await logOutreach(listing.id, `Email sent to: ${recipientEmail}\n\n${emailContent}`, 'email');
+        // Log outreach using API
+        logOutreachMutation.mutate({
+          listingId: listing.id,
+          method: 'email',
+          content: `Email sent to: ${recipientEmail}\n\n${emailContent}`,
+          wasSent: true
+        });
+        
         window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
         
         toast({
@@ -76,7 +77,14 @@ const Index = () => {
         const phone = listing.contact_info?.phone;
         if (!phone) return;
         
-        await logOutreach(listing.id, `Phone copied: ${phone}`, 'phone');
+        // Log outreach using API
+        logOutreachMutation.mutate({
+          listingId: listing.id,
+          method: 'phone',
+          content: `Phone copied: ${phone}`,
+          wasSent: true
+        });
+        
         navigator.clipboard.writeText(phone);
         toast({
           title: "Phone Copied",
@@ -85,7 +93,14 @@ const Index = () => {
         break;
 
       case 'visit':
-        await logOutreach(listing.id, `Visited original listing: ${listing.url}`, 'visit');
+        // Log outreach using API
+        logOutreachMutation.mutate({
+          listingId: listing.id,
+          method: 'email', // Use email as closest match for visit tracking
+          content: `Visited original listing: ${listing.url}`,
+          wasSent: true
+        });
+        
         window.open(listing.url, '_blank');
         break;
     }
@@ -118,13 +133,48 @@ const Index = () => {
     }
   };
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <h2 className="text-lg font-medium text-gray-900 mb-2">LEO is scanning for opportunities...</h2>
+          <p className="text-gray-600">This may take a moment while LEO analyzes properties</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="text-red-400 mb-4">
+            <Home className="w-16 h-16 mx-auto mb-4" />
+          </div>
+          <h2 className="text-lg font-medium text-gray-900 mb-2">LEO Can't Connect</h2>
+          <p className="text-gray-600 mb-4">
+            LEO can't reach the server right now. Make sure the backend is running on port 8000.
+          </p>
+          <Button onClick={() => refetch()} className="bg-blue-600 hover:bg-blue-700">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   // Filter active listings and calculate stats
   const activeListings = listings.filter(listing => {
     if (!listing.expiresAt) return true;
     return new Date(listing.expiresAt) >= new Date();
   });
 
-  const qualifiedOpportunities = activeListings.filter(listing => listing.match_score >= 40);
+  // All listings returned are already qualified (minScore: 40)
+  const qualifiedOpportunities = activeListings;
   const highValueOpportunities = activeListings.filter(listing => listing.match_score >= 60);
   const topMatchScore = Math.max(...qualifiedOpportunities.map(l => l.match_score), 0);
   
@@ -133,6 +183,9 @@ const Index = () => {
     const today = new Date();
     return listingDate.toDateString() === today.toDateString();
   }).length;
+
+  // Calculate emails sent today from outreach data (this would need to be enhanced with API call)
+  const emailsSentToday = 0; // TODO: Add API endpoint for today's outreach count
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -244,6 +297,9 @@ const Index = () => {
             </div>
           </div>
         )}
+
+        {/* Developer Tools */}
+        <DevTools />
       </main>
 
       <EmailDraftModal
