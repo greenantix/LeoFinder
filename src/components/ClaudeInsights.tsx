@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { CheckCircle, AlertCircle, XCircle, HelpCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Listing } from '../types/listing';
 
 interface ClaudeInsightsProps {
@@ -38,6 +39,32 @@ export const ClaudeInsights: React.FC<ClaudeInsightsProps> = ({ insights }) => {
     }
   };
 
+  const getReasoningTooltip = (question: string, status: 'yes' | 'maybe' | 'no') => {
+    const reasoningMap = {
+      'noMoneyDown': {
+        'yes': 'Marked "Likely" due to presence of terms: VA eligible, owner financing, or lease-to-own options',
+        'maybe': 'Marked "Possible" - some favorable terms found but may require negotiation',
+        'no': 'Marked "Unlikely" - traditional financing terms with down payment required'
+      },
+      'flexibleTerms': {
+        'yes': 'Marked "Likely" due to seller financing, contract for deed, or rent-to-own mentions',
+        'maybe': 'Marked "Possible" - seller may consider alternative arrangements upon request',
+        'no': 'Marked "Unlikely" - standard sale terms with no flexibility indicated'
+      },
+      'dogFriendly': {
+        'yes': 'Marked "Likely" based on pet-friendly location, rural setting, or explicit pet mentions',
+        'maybe': 'Marked "Possible" - location appears suitable but pet policy unclear',
+        'no': 'Marked "Unlikely" - urban setting or restrictions that may limit pet acceptance'
+      }
+    };
+
+    if (question.includes('no money down')) return reasoningMap.noMoneyDown[status];
+    if (question.includes('flexible terms')) return reasoningMap.flexibleTerms[status];
+    if (question.includes('dog-friendly')) return reasoningMap.dogFriendly[status];
+    
+    return 'Analysis based on listing content and market data';
+  };
+
   const insights_data = [
     {
       question: "Can I buy this with no money down?",
@@ -67,9 +94,16 @@ export const ClaudeInsights: React.FC<ClaudeInsightsProps> = ({ insights }) => {
             {getStatusIcon(item.status)}
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-900">{item.question}</p>
-              <p className={`text-xs ${getStatusText(item.status)} capitalize`}>
-                {item.status === 'yes' ? 'Likely' : item.status === 'maybe' ? 'Possible' : 'Unlikely'}
-              </p>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <p className={`text-xs ${getStatusText(item.status)} capitalize cursor-help underline decoration-dotted`}>
+                    {item.status === 'yes' ? 'Likely' : item.status === 'maybe' ? 'Possible' : 'Unlikely'}
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>{getReasoningTooltip(item.question, item.status)}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         ))}

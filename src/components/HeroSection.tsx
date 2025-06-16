@@ -32,8 +32,8 @@ export const HeroSection: React.FC = () => {
             <div className="bg-white/10 p-2 rounded-lg mb-2 mx-auto w-fit">
               <Heart className="w-5 h-5" />
             </div>
-            <div className="text-xs font-medium">Pet Friendly</div>
-            <div className="text-xs text-blue-200">Your dogs welcome</div>
+            <div className="text-xs font-medium">Leo-Approved</div>
+            <div className="text-xs text-blue-200">Leo-approved listings only 🐾</div>
           </div>
           
           <div className="text-center">

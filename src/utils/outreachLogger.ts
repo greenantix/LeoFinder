@@ -4,14 +4,14 @@ import { OutreachLog } from '../types/listing';
 // Since we don't have Firestore connected, we'll use localStorage for now
 // In production with Supabase, this would be replaced with actual database calls
 
-export const logOutreach = async (listingId: string, emailContent: string): Promise<void> => {
+export const logOutreach = async (listingId: string, emailContent: string, method: 'email' | 'phone' | 'visit' = 'email'): Promise<void> => {
   const outreachLog: OutreachLog = {
     id: Date.now().toString(),
     listingId,
-    emailSent: true,
+    emailSent: method === 'email',
     wasSent: true,
     timestamp: new Date().toISOString(),
-    emailContent,
+    emailContent: `Method: ${method}\n${emailContent}`,
   };
 
   // Store in localStorage for now

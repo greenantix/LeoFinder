@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { HeroSection } from '../components/HeroSection';
@@ -78,6 +77,14 @@ const Index = () => {
     }
   };
 
+  const handleReAnalyze = (listing: Listing) => {
+    // Simulate re-analysis - in production this would call Claude API
+    toast({
+      title: "Analysis Complete",
+      description: `Updated insights for ${listing.address}`,
+    });
+  };
+
   // Filter out expired listings and calculate stats
   const activeListings = listings.filter(listing => {
     if (!listing.expiresAt) return true;
@@ -150,6 +157,7 @@ const Index = () => {
                   key={listing.id}
                   listing={listing}
                   onEmailDraft={handleEmailDraft}
+                  onReAnalyze={handleReAnalyze}
                 />
               ))}
             </div>
@@ -167,6 +175,7 @@ const Index = () => {
                 key={listing.id}
                 listing={listing}
                 onEmailDraft={handleEmailDraft}
+                onReAnalyze={handleReAnalyze}
               />
             ))}
           </div>

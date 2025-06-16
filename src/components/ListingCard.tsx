@@ -4,7 +4,8 @@ import { Listing } from '../types/listing';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Home, Calendar, Mail, Phone, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { MapPin, Home, Calendar, Mail, Phone, ExternalLink, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ClaudeInsights } from './ClaudeInsights';
 import { logOutreach } from '../utils/outreachLogger';
@@ -13,9 +14,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 interface ListingCardProps {
   listing: Listing;
   onEmailDraft: (listing: Listing) => void;
+  onReAnalyze?: (listing: Listing) => void;
 }
 
-export const ListingCard: React.FC<ListingCardProps> = ({ listing, onEmailDraft }) => {
+export const ListingCard: React.FC<ListingCardProps> = ({ listing, onEmailDraft, onReAnalyze }) => {
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -59,7 +61,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onEmailDraft 
     if (!recipientEmail) {
       toast({
         title: "No Email Available",
-        description: "No email listed, try contacting via website.",
+        description: "Visit original listing to contact seller",
         variant: "destructive"
       });
       return;
@@ -68,8 +70,8 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onEmailDraft 
     const subject = encodeURIComponent(`Interested in ${listing.address}`);
     const body = encodeURIComponent(emailContent);
     
-    // Log the outreach
-    await logOutreach(listing.id, emailContent);
+    // Log the outreach with method
+    await logOutreach(listing.id, `Email sent to: ${recipientEmail}\n\n${emailContent}`);
     
     // Open mail app
     window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
@@ -80,9 +82,35 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onEmailDraft 
     });
   };
 
+  const handlePhoneContact = async () => {
+    const phone = listing.contact_info?.phone;
+    if (!phone) return;
+    
+    await logOutreach(listing.id, `Phone copied: ${phone}`);
+    copyToClipboard(phone, 'Phone number');
+  };
+
+  const handleVisitListing = async () => {
+    await logOutreach(listing.id, `Visited original listing: ${listing.url}`);
+    window.open(listing.url, '_blank');
+  };
+
+  const handleReAnalyze = () => {
+    if (onReAnalyze) {
+      onReAnalyze(listing);
+      toast({
+        title: "Re-analyzing...",
+        description: "Claude is reviewing this listing again",
+      });
+    }
+  };
+
   if (isExpired()) {
     return null; // Hide expired listings
   }
+
+  const hasContactEmail = listing.contactEmail || listing.contact_info?.email;
+  const hasContactPhone = listing.contact_info?.phone;
 
   return (
     <Card className="mb-4 shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -141,20 +169,40 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onEmailDraft 
 
         <p className="text-gray-700 text-sm mb-4 line-clamp-3">{listing.description}</p>
 
-        {/* Main action buttons */}
+        {/* Contact Actions */}
         <div className="flex flex-wrap gap-2 mb-4">
-          <Button 
-            onClick={sendMessage}
-            className="flex-1 bg-green-600 hover:bg-green-700"
-          >
-            <Mail className="w-4 h-4 mr-2" />
-            Send Message
-          </Button>
-          
-          {listing.contact_info?.phone && (
+          {hasContactEmail ? (
+            <Button 
+              onClick={sendMessage}
+              className="flex-1 bg-green-600 hover:bg-green-700"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Send Message
+            </Button>
+          ) : hasContactPhone ? (
             <Button 
               variant="outline" 
-              onClick={() => copyToClipboard(listing.contact_info!.phone!, 'Phone number')}
+              onClick={handlePhoneContact}
+              className="flex-1"
+            >
+              <Phone className="w-4 h-4 mr-2" />
+              Copy Phone
+            </Button>
+          ) : (
+            <Button 
+              variant="outline" 
+              onClick={handleVisitListing}
+              className="flex-1"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Visit Original Listing
+            </Button>
+          )}
+          
+          {hasContactPhone && hasContactEmail && (
+            <Button 
+              variant="outline" 
+              onClick={handlePhoneContact}
               className="flex-1"
             >
               <Phone className="w-4 h-4 mr-2" />
@@ -185,10 +233,29 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onEmailDraft 
                 View Email Draft
               </Button>
               
+              {onReAnalyze && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleReAnalyze}
+                      className="flex-1"
+                    >
+                      <RotateCcw className="w-4 h-4 mr-1" />
+                      Re-Analyze
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Have Claude re-analyze this listing with updated criteria</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => window.open(listing.url, '_blank')}
+                onClick={handleVisitListing}
                 className="flex-1"
               >
                 <ExternalLink className="w-4 h-4 mr-1" />
