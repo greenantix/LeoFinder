@@ -116,3 +116,6 @@ temp/
 .vercel
 server/.env.minimal
 server/.env.production
+
+# Local Netlify folder
+.netlify

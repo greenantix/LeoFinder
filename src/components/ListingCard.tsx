@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { MapPin, Home, Calendar, Mail, Phone, ExternalLink, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ClaudeInsights } from './ClaudeInsights';
-import { logOutreach } from '../utils/outreachLogger';
+import { useLogOutreach } from '@/hooks/useListings';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface ListingCardProps {
@@ -20,6 +20,7 @@ interface ListingCardProps {
 export const ListingCard: React.FC<ListingCardProps> = ({ listing, onEmailDraft, onReAnalyze }) => {
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
+  const logOutreachMutation = useLogOutreach();
 
   // Check if listing is expired (older than 7 days)
   const isExpired = () => {
@@ -71,7 +72,12 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onEmailDraft,
     const body = encodeURIComponent(emailContent);
     
     // Log the outreach with method
-    await logOutreach(listing.id, `Email sent to: ${recipientEmail}\n\n${emailContent}`);
+    logOutreachMutation.mutate({
+      listingId: listing.id,
+      method: 'email',
+      content: emailContent,
+      wasSent: true
+    });
     
     // Open mail app
     window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
@@ -82,16 +88,26 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onEmailDraft,
     });
   };
 
-  const handlePhoneContact = async () => {
+  const handlePhoneContact = () => {
     const phone = listing.contact_info?.phone;
     if (!phone) return;
     
-    await logOutreach(listing.id, `Phone copied: ${phone}`);
+    logOutreachMutation.mutate({
+      listingId: listing.id,
+      method: 'phone',
+      content: `Phone contacted: ${phone}`,
+      wasSent: true
+    });
     copyToClipboard(phone, 'Phone number');
   };
 
-  const handleVisitListing = async () => {
-    await logOutreach(listing.id, `Visited original listing: ${listing.url}`);
+  const handleVisitListing = () => {
+    logOutreachMutation.mutate({
+      listingId: listing.id,
+      method: 'email',
+      content: `Visited original listing: ${listing.url}`,
+      wasSent: false
+    });
     window.open(listing.url, '_blank');
   };
 
