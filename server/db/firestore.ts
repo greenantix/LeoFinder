@@ -99,8 +99,8 @@ class FirestoreDatabase {
           claudeInsights: data.claudeInsights,
           status: data.status || 'new',
           expiresAt: data.expiresAt,
-          created_at: data.created_at?.toDate?.() || new Date(),
-          updated_at: data.updated_at?.toDate?.() || new Date(),
+          createdAt: data.createdAt || new Date().toISOString(),
+          updatedAt: data.updatedAt || new Date().toISOString(),
         });
       });
 
@@ -151,8 +151,8 @@ class FirestoreDatabase {
         claudeInsights: data.claudeInsights,
         status: data.status || 'new',
         expiresAt: data.expiresAt,
-        created_at: data.created_at?.toDate?.() || new Date(),
-        updated_at: data.updated_at?.toDate?.() || new Date(),
+        createdAt: data.createdAt || new Date().toISOString(),
+        updatedAt: data.updatedAt || new Date().toISOString(),
       };
     } catch (error) {
       console.error('Error fetching listing:', error);
@@ -164,8 +164,8 @@ class FirestoreDatabase {
     try {
       const listingData = {
         ...listing,
-        created_at: admin.firestore.FieldValue.serverTimestamp(),
-        updated_at: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       };
 
       if (listing.id) {
@@ -194,13 +194,13 @@ class FirestoreDatabase {
       
       return {
         id: docRef.id,
-        listing_id: log.listing_id,
-        recipient_email: log.recipient_email,
-        subject: log.subject,
-        body: log.body,
-        status: log.status,
+        listingId: log.listingId,
+        emailSent: log.emailSent,
+        wasSent: log.wasSent,
+        emailContent: log.emailContent,
         response: log.response || '',
-        timestamp: new Date(),
+        method: log.method,
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       console.error('Error logging outreach:', error);
