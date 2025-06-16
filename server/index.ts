@@ -267,21 +267,24 @@ process.on('SIGINT', async () => {
 });
 
 async function startServer() {
+  // Start server first
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔗 Frontend URL: ${FRONTEND_URL}`);
+  });
+
+  // Try database connection (non-blocking)
   try {
-    // Test database connection
     await db.testConnection();
+    console.log('✅ Database connected successfully');
     
-    // Initialize database schema
     await db.initializeSchema();
-    
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`Database: Connected`);
-    });
+    console.log('✅ Database schema initialized');
   } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
+    console.error('⚠️ Database connection failed, but server is running:', error);
+    console.log('📋 Please check your DATABASE_URL environment variable');
+    console.log('🔧 Server will continue running for debugging');
   }
 }
 

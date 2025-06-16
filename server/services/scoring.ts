@@ -20,9 +20,30 @@ export class ScoringService {
 
   private loadKeywords(): void {
     try {
-      const keywordsPath = path.join(__dirname, 'keywords.json');
-      const keywordsData = fs.readFileSync(keywordsPath, 'utf8');
-      this.keywords = JSON.parse(keywordsData);
+      // Try multiple possible locations for keywords.json
+      const possiblePaths = [
+        path.join(__dirname, 'keywords.json'),
+        path.join(__dirname, '..', 'keywords.json'),
+        path.join(process.cwd(), 'keywords.json'),
+        path.join(process.cwd(), 'server', 'keywords.json')
+      ];
+      
+      let keywordsData = '';
+      for (const keywordsPath of possiblePaths) {
+        try {
+          keywordsData = fs.readFileSync(keywordsPath, 'utf8');
+          console.log(`Keywords loaded from: ${keywordsPath}`);
+          break;
+        } catch (error) {
+          continue; // Try next path
+        }
+      }
+      
+      if (keywordsData) {
+        this.keywords = JSON.parse(keywordsData);
+      } else {
+        throw new Error('Keywords file not found in any location');
+      }
     } catch (error) {
       console.error('Error loading keywords:', error);
       // Fallback keywords if file can't be loaded
