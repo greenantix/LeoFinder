@@ -150,14 +150,14 @@ export class ForeclosureScraper {
         property_type: 'Foreclosure',
         listing_date: new Date().toISOString(),
         flags: {
-          va_eligible: false,
-          contract_for_deed: false,
-          owner_finance: false,
-          lease_to_own: false,
-          no_credit_check: false,
-          usda_eligible: false
+          va_eligible: this.isVAEligible(detailedInfo.description, listingData.address),
+          contract_for_deed: this.hasCreativeFinancing(detailedInfo.description, 'contract'),
+          owner_finance: this.hasCreativeFinancing(detailedInfo.description, 'owner'),
+          lease_to_own: this.hasCreativeFinancing(detailedInfo.description, 'lease'),
+          no_credit_check: this.hasCreativeFinancing(detailedInfo.description, 'credit'),
+          usda_eligible: this.isUSDAEligible(detailedInfo.description, listingData.address)
         },
-        match_score: 0
+        match_score: this.calculateScore(price, detailedInfo.description, listingData.address)
       };
 
       return listing;
@@ -170,6 +170,60 @@ export class ForeclosureScraper {
   private parsePrice(priceText: string): number {
     const cleaned = priceText.replace(/[^\d]/g, '');
     return parseInt(cleaned) || 0;
+  }
+
+  private isVAEligible(description: string, address: string): boolean {
+    const vaKeywords = [
+      'va approved', 'va eligible', 'veteran', 'military', 'va loan',
+      'zero down', 'no down payment', 'first time buyer', 'move in ready'
+    ];
+    
+    const text = (description + ' ' + address).toLowerCase();
+    return vaKeywords.some(keyword => text.includes(keyword));
+  }
+
+  private hasCreativeFinancing(description: string, type: string): boolean {
+    const patterns = {
+      contract: ['contract for deed', 'land contract', 'seller contract'],
+      owner: ['owner financing', 'seller financing', 'owner carry', 'seller carry'],
+      lease: ['lease to own', 'rent to own', 'lease option', 'lease purchase'],
+      credit: ['no credit check', 'bad credit ok', 'credit flexible', 'any credit']
+    };
+    
+    const text = description.toLowerCase();
+    return patterns[type as keyof typeof patterns]?.some(phrase => text.includes(phrase)) || false;
+  }
+
+  private isUSDAEligible(description: string, address: string): boolean {
+    const usda_keywords = ['rural', 'country', 'usda eligible', 'usda approved'];
+    const text = (description + ' ' + address).toLowerCase();
+    return usda_keywords.some(keyword => text.includes(keyword));
+  }
+
+  private calculateScore(price: number, description: string, address: string): number {
+    let score = 50; // Base score
+    
+    // Price scoring (lower is better for veterans)
+    if (price < 200000) score += 30;
+    else if (price < 300000) score += 20;
+    else if (price < 400000) score += 10;
+    else score -= 10;
+    
+    // Creative financing bonus
+    if (this.hasCreativeFinancing(description, 'owner')) score += 20;
+    if (this.hasCreativeFinancing(description, 'contract')) score += 15;
+    if (this.hasCreativeFinancing(description, 'lease')) score += 15;
+    if (this.hasCreativeFinancing(description, 'credit')) score += 10;
+    
+    // VA eligibility bonus
+    if (this.isVAEligible(description, address)) score += 25;
+    
+    // Condition keywords
+    const text = description.toLowerCase();
+    if (text.includes('move in ready') || text.includes('updated')) score += 10;
+    if (text.includes('needs work') || text.includes('fixer')) score -= 15;
+    
+    return Math.max(0, Math.min(100, score));
   }
 }
 

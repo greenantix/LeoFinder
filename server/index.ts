@@ -328,6 +328,29 @@ async function startServer() {
     console.log('📋 Please check your DATABASE_URL environment variable');
     console.log('🔧 Server will continue running for debugging');
   }
+
+  // Schedule automatic scraping for production
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🤖 Setting up periodic scraping...');
+    setInterval(async () => {
+      try {
+        console.log('🤖 LEO running scheduled scraping...');
+        const popularZipCodes = ['85001', '85701', '85201'];
+        
+        for (const zipCode of popularZipCodes) {
+          try {
+            const results = await scraperService.scrapeMultipleSources(zipCode, ['foreclosure']);
+            console.log(`✅ Scraped ${zipCode}: ${results[0]?.listings.length || 0} listings`);
+          } catch (error) {
+            console.error(`❌ Failed to scrape ${zipCode}:`, error);
+          }
+          await new Promise(resolve => setTimeout(resolve, 30000));
+        }
+      } catch (error) {
+        console.error('Periodic scraping error:', error);
+      }
+    }, 6 * 60 * 60 * 1000); // Every 6 hours
+  }
 }
 
 startServer();
