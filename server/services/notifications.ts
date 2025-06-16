@@ -18,20 +18,31 @@ export class NotificationService {
   private initializeFirebase(): void {
     try {
       if (admin.apps.length === 0) {
+        const projectId = process.env.FIREBASE_PROJECT_ID;
+        const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+        const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+
+        if (!projectId || !privateKey || !clientEmail) {
+          console.warn('Firebase configuration incomplete. Push notifications will be disabled.');
+          return;
+        }
+
+        // Clean and validate the private key
+        let cleanPrivateKey = privateKey.replace(/\\n/g, '\n');
+        if (!cleanPrivateKey.includes('-----BEGIN PRIVATE KEY-----')) {
+          console.warn('Firebase private key format invalid. Push notifications will be disabled.');
+          return;
+        }
+
         const firebaseConfig = {
-          projectId: process.env.FIREBASE_PROJECT_ID,
+          projectId,
           privateKeyId: process.env.FIREBASE_PRIVATE_KEY_ID,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: cleanPrivateKey,
+          clientEmail,
           clientId: process.env.FIREBASE_CLIENT_ID,
           authUri: process.env.FIREBASE_AUTH_URI || 'https://accounts.google.com/o/oauth2/auth',
           tokenUri: process.env.FIREBASE_TOKEN_URI || 'https://oauth2.googleapis.com/token'
         };
-
-        if (!firebaseConfig.projectId || !firebaseConfig.privateKey || !firebaseConfig.clientEmail) {
-          console.warn('Firebase configuration incomplete. Push notifications will be disabled.');
-          return;
-        }
 
         admin.initializeApp({
           credential: admin.credential.cert(firebaseConfig as admin.ServiceAccount),

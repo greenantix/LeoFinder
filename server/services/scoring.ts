@@ -20,7 +20,7 @@ export class ScoringService {
 
   private loadKeywords(): void {
     try {
-      const keywordsPath = path.join(__dirname, '..', 'keywords.json');
+      const keywordsPath = path.join(__dirname, 'keywords.json');
       const keywordsData = fs.readFileSync(keywordsPath, 'utf8');
       this.keywords = JSON.parse(keywordsData);
     } catch (error) {
