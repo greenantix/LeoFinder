@@ -3,7 +3,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Copy, Mail } from 'lucide-react';
+import { Copy, Mail, Heart } from 'lucide-react';
 import { Listing } from '../types/listing';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,14 +22,14 @@ export const EmailDraftModal: React.FC<EmailDraftModalProps> = ({ listing, isOpe
     navigator.clipboard.writeText(listing.emailDraft || '');
     toast({
       title: "Copied!",
-      description: "Email draft copied to clipboard",
+      description: "LEO's email draft copied to clipboard",
     });
   };
 
   const openMailApp = () => {
     const subject = encodeURIComponent(`Interest in Property: ${listing.address}`);
     const body = encodeURIComponent(listing.emailDraft || '');
-    const email = listing.contact_info?.email || '';
+    const email = listing.contact_info?.email || listing.contactEmail || '';
     
     if (email) {
       window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
@@ -37,7 +37,7 @@ export const EmailDraftModal: React.FC<EmailDraftModalProps> = ({ listing, isOpe
     } else {
       toast({
         title: "No Email Available",
-        description: "Contact information doesn't include email. Copy the text and send manually.",
+        description: "LEO suggests copying the text and contacting via the original listing",
         variant: "destructive"
       });
     }
@@ -47,15 +47,22 @@ export const EmailDraftModal: React.FC<EmailDraftModalProps> = ({ listing, isOpe
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md mx-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">
-            Email Draft for {listing.address}
+          <DialogTitle className="text-lg font-semibold flex items-center gap-2">
+            <Heart className="w-5 h-5 text-blue-600" />
+            LEO's Email Draft for {listing.address}
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm text-blue-800">
+              🐾 LEO has crafted this personalized message based on the property details and your preferences.
+            </p>
+          </div>
+          
           <div>
             <label className="text-sm font-medium text-gray-700 mb-2 block">
-              To: {listing.contact_info?.email || listing.contact_info?.name || 'Property Owner'}
+              To: {listing.contact_info?.email || listing.contactEmail || listing.contact_info?.name || 'Property Owner'}
             </label>
             <label className="text-sm font-medium text-gray-700 mb-2 block">
               Subject: Interest in Property: {listing.address}
@@ -66,7 +73,7 @@ export const EmailDraftModal: React.FC<EmailDraftModalProps> = ({ listing, isOpe
             value={listing.emailDraft || ''}
             readOnly
             className="min-h-[200px] text-sm"
-            placeholder="Email draft will appear here..."
+            placeholder="LEO's email draft will appear here..."
           />
           
           {listing.contact_info?.phone && (
@@ -89,10 +96,10 @@ export const EmailDraftModal: React.FC<EmailDraftModalProps> = ({ listing, isOpe
           <Button 
             onClick={openMailApp}
             className="flex-1 bg-blue-600 hover:bg-blue-700"
-            disabled={!listing.contact_info?.email}
+            disabled={!listing.contact_info?.email && !listing.contactEmail}
           >
             <Mail className="w-4 h-4 mr-2" />
-            {listing.contact_info?.email ? 'Send Email' : 'No Email'}
+            {(listing.contact_info?.email || listing.contactEmail) ? 'Send Email' : 'No Email'}
           </Button>
         </DialogFooter>
       </DialogContent>

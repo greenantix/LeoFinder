@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { HeroSection } from '../components/HeroSection';
-import { ListingCard } from '../components/ListingCard';
+import { OpportunityCard } from '../components/OpportunityCard';
 import { EmailDraftModal } from '../components/EmailDraftModal';
-import { MissionFeed } from '../components/MissionFeed';
+import { LeoMissionBriefing } from '../components/LeoMissionBriefing';
 import { generateMockListings } from '../utils/mockData';
-import { getTodayEmailCount } from '../utils/outreachLogger';
+import { getTodayEmailCount, logOutreach } from '../utils/outreachLogger';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { Listing } from '../types/listing';
 import { Button } from '@/components/ui/button';
@@ -27,19 +28,14 @@ const Index = () => {
   } = usePushNotifications();
 
   useEffect(() => {
-    // Load initial listings
     const mockListings = generateMockListings();
     setListings(mockListings);
-    
-    // Load today's email count
     setEmailsSentToday(getTodayEmailCount());
     
-    // Simulate real-time updates (in production, this would be WebSocket or polling)
     const interval = setInterval(() => {
-      console.log('Checking for new listings...');
-      // Update email count in case user sent emails
+      console.log('LEO is checking for new listings...');
       setEmailsSentToday(getTodayEmailCount());
-    }, 30000); // Check every 30 seconds
+    }, 30000);
 
     return () => clearInterval(interval);
   }, []);
@@ -49,54 +45,90 @@ const Index = () => {
     setIsEmailModalOpen(true);
   };
 
+  const handleContact = async (listing: Listing, method: 'email' | 'phone' | 'visit') => {
+    switch (method) {
+      case 'email':
+        const emailContent = listing.emailTemplate || listing.emailDraft || '';
+        const recipientEmail = listing.contactEmail || listing.contact_info?.email;
+        
+        if (!recipientEmail) {
+          toast({
+            title: "No Email Available",
+            description: "LEO suggests visiting the original listing to contact seller",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const subject = encodeURIComponent(`Interested in ${listing.address}`);
+        const body = encodeURIComponent(emailContent);
+        
+        await logOutreach(listing.id, `Email sent to: ${recipientEmail}\n\n${emailContent}`, 'email');
+        window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
+        
+        toast({
+          title: "LEO's Email Opened",
+          description: "Mail app opened with pre-filled message",
+        });
+        break;
+
+      case 'phone':
+        const phone = listing.contact_info?.phone;
+        if (!phone) return;
+        
+        await logOutreach(listing.id, `Phone copied: ${phone}`, 'phone');
+        navigator.clipboard.writeText(phone);
+        toast({
+          title: "Phone Copied",
+          description: "Phone number copied to clipboard",
+        });
+        break;
+
+      case 'visit':
+        await logOutreach(listing.id, `Visited original listing: ${listing.url}`, 'visit');
+        window.open(listing.url, '_blank');
+        break;
+    }
+  };
+
   const handleNotificationSetup = async () => {
     if (permission === 'granted') {
       toast({
-        title: "Notifications Active",
-        description: "You'll be notified of new matching listings",
+        title: "LEO's Notifications Active",
+        description: "You'll be notified of new matching opportunities",
       });
     } else {
       const granted = await requestPermission();
       if (granted) {
         toast({
-          title: "Notifications Enabled!",
-          description: "You'll now receive alerts for new matching listings",
+          title: "LEO's Alerts Enabled!",
+          description: "You'll now receive alerts for new opportunities",
         });
         
-        // Send a test notification
         setTimeout(() => {
           sendNewListingNotification("1234 Test Street, Test City", 85);
         }, 2000);
       } else {
         toast({
           title: "Notifications Blocked",
-          description: "Enable notifications in your browser settings to stay updated",
+          description: "Enable notifications to let LEO alert you of opportunities",
           variant: "destructive"
         });
       }
     }
   };
 
-  const handleReAnalyze = (listing: Listing) => {
-    // Simulate re-analysis - in production this would call Claude API
-    toast({
-      title: "Analysis Complete",
-      description: `Updated insights for ${listing.address}`,
-    });
-  };
-
-  // Filter out expired listings and calculate stats
+  // Filter active listings and calculate stats
   const activeListings = listings.filter(listing => {
     if (!listing.expiresAt) return true;
     return new Date(listing.expiresAt) >= new Date();
   });
 
-  const matchedListings = activeListings.filter(listing => listing.match_score >= 40);
-  const highMatchListings = activeListings.filter(listing => listing.match_score >= 60);
-  const topMatchScore = Math.max(...matchedListings.map(l => l.match_score), 0);
+  const qualifiedOpportunities = activeListings.filter(listing => listing.match_score >= 40);
+  const highValueOpportunities = activeListings.filter(listing => listing.match_score >= 60);
+  const topMatchScore = Math.max(...qualifiedOpportunities.map(l => l.match_score), 0);
   
-  // New leads count (simulate - in production this would track actual new listings)
-  const newLeadsToday = matchedListings.filter(listing => {
+  const newOpportunitiesToday = qualifiedOpportunities.filter(listing => {
     const listingDate = new Date(listing.listing_date);
     const today = new Date();
     return listingDate.toDateString() === today.toDateString();
@@ -106,17 +138,17 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50">
       <Header 
         totalListings={activeListings.length} 
-        matchedListings={matchedListings.length}
+        matchedListings={qualifiedOpportunities.length}
       />
       
       <HeroSection />
       
       <main className="max-w-md mx-auto px-4 py-6">
-        {/* Mission Feed */}
-        <MissionFeed 
-          newLeadsCount={newLeadsToday}
+        {/* LEO Mission Briefing */}
+        <LeoMissionBriefing 
+          newLeadsCount={newOpportunitiesToday}
           emailsSentToday={emailsSentToday}
-          highMatchCount={highMatchListings.length}
+          highMatchCount={highValueOpportunities.length}
           topMatchScore={topMatchScore > 0 ? topMatchScore : undefined}
         />
 
@@ -126,87 +158,87 @@ const Index = () => {
             <div className="flex items-start gap-3">
               <Bell className="w-5 h-5 text-yellow-600 mt-0.5" />
               <div className="flex-1">
-                <h3 className="font-medium text-yellow-800 mb-1">Stay Updated</h3>
+                <h3 className="font-medium text-yellow-800 mb-1">Let LEO Alert You</h3>
                 <p className="text-sm text-yellow-700 mb-3">
-                  Get instant notifications when new matching properties are found.
+                  Get instant notifications when LEO finds new opportunities.
                 </p>
                 <Button 
                   onClick={handleNotificationSetup}
                   size="sm"
                   className="bg-yellow-600 hover:bg-yellow-700"
                 >
-                  Enable Notifications
+                  Enable LEO Alerts
                 </Button>
               </div>
             </div>
           </div>
         )}
 
-        {/* High Priority Matches */}
-        {highMatchListings.length > 0 && (
+        {/* High-Value Opportunities */}
+        {highValueOpportunities.length > 0 && (
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-lg font-bold text-gray-900">🎯 Top Matches</h2>
+              <h2 className="text-lg font-bold text-gray-900">🎯 LEO's Top Picks</h2>
               <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">
-                {highMatchListings.length} urgent
+                {highValueOpportunities.length} urgent
               </span>
             </div>
             <div className="space-y-4">
-              {highMatchListings.map(listing => (
-                <ListingCard
+              {highValueOpportunities.map(listing => (
+                <OpportunityCard
                   key={listing.id}
                   listing={listing}
                   onEmailDraft={handleEmailDraft}
-                  onReAnalyze={handleReAnalyze}
+                  onContact={handleContact}
                 />
               ))}
             </div>
           </section>
         )}
 
-        {/* All Matches */}
+        {/* All Qualified Opportunities */}
         <section>
           <h2 className="text-lg font-bold text-gray-900 mb-4">
-            📋 All Opportunities ({matchedListings.length})
+            📋 All Opportunities ({qualifiedOpportunities.length})
           </h2>
           <div className="space-y-4">
-            {matchedListings.map(listing => (
-              <ListingCard
+            {qualifiedOpportunities.map(listing => (
+              <OpportunityCard
                 key={listing.id}
                 listing={listing}
                 onEmailDraft={handleEmailDraft}
-                onReAnalyze={handleReAnalyze}
+                onContact={handleContact}
               />
             ))}
           </div>
         </section>
 
-        {matchedListings.length === 0 && (
+        {qualifiedOpportunities.length === 0 && (
           <div className="text-center py-12">
             <div className="text-gray-400 mb-4">
               <Home className="w-16 h-16 mx-auto mb-4" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No matches yet</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">LEO is hunting...</h3>
             <p className="text-gray-600 text-sm">
-              We're actively scanning for new listings that match your criteria. 
+              No qualified opportunities yet, but LEO is actively scanning for new listings. 
               Check back soon or enable notifications to stay updated.
             </p>
           </div>
         )}
 
-        {/* Notification Status */}
+        {/* LEO Status */}
         {isSupported && (
           <div className="mt-8 p-4 bg-gray-100 rounded-lg">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               {permission === 'granted' ? (
                 <>
                   <Bell className="w-4 h-4 text-green-600" />
-                  <span>Notifications enabled - you'll be alerted to new matches</span>
+                  <span>LEO alerts active - you'll be notified of new opportunities</span>
                 </>
               ) : (
                 <>
                   <BellOff className="w-4 h-4 text-gray-400" />
-                  <span>Enable notifications to never miss a match</span>
+                  <span>Enable notifications to let LEO alert you of opportunities</span>
                 </>
               )}
             </div>
